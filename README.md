@@ -1,7 +1,7 @@
 # Notserver Monitor
 
-[![CI](https://github.com/ninex9x/notserver-monitor/actions/workflows/ci.yml/badge.svg)](https://github.com/ninex9x/notserver-monitor/actions/workflows/ci.yml)
-[![Secret scan](https://github.com/ninex9x/notserver-monitor/actions/workflows/secret-scan.yml/badge.svg)](https://github.com/ninex9x/notserver-monitor/actions/workflows/secret-scan.yml)
+[![CI](https://github.com/ninex9x/monitor-server/actions/workflows/ci.yml/badge.svg)](https://github.com/ninex9x/monitor-server/actions/workflows/ci.yml)
+[![Secret scan](https://github.com/ninex9x/monitor-server/actions/workflows/secret-scan.yml/badge.svg)](https://github.com/ninex9x/monitor-server/actions/workflows/secret-scan.yml)
 
 Dashboard web responsivo e aplicativo Android para acompanhar servidores Linux
 localmente ou por SSH. O monitor reúne CPU, memória, discos, uptime, serviços
@@ -43,8 +43,8 @@ somente leitura.
 Clone e abra o modo demonstração, que não acessa nenhum servidor:
 
 ```bash
-git clone https://github.com/ninex9x/notserver-monitor.git
-cd notserver-monitor
+git clone https://github.com/ninex9x/monitor-server.git
+cd monitor-server
 npm run demo
 ```
 
