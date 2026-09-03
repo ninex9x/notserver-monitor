@@ -1,0 +1,16 @@
+{
+  "name": "notserver-monitor",
+  "version": "1.2.1",
+  "private": true,
+  "type": "module",
+  "description": "Painel local e somente leitura para monitorar o notserver via SSH.",
+  "scripts": {
+    "dev": "node --env-file-if-exists=.env --watch server.mjs",
+    "start": "node --env-file-if-exists=.env server.mjs",
+    "demo": "MONITOR_DEMO=true node --env-file-if-exists=.env server.mjs",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=24"
+  }
+}

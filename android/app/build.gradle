@@ -1,0 +1,48 @@
+plugins {
+    id "com.android.application"
+}
+
+def javaString = { value ->
+    "\"" + value.replace("\\", "\\\\").replace("\"", "\\\"") + "\""
+}
+def monitorBaseUrl = System.getenv("MONITOR_BASE_URL")
+if (!monitorBaseUrl) {
+    monitorBaseUrl = "https://monitor.example.com"
+}
+def monitorTokenFile = System.getenv("MONITOR_ACCESS_TOKEN_FILE")
+def monitorAccessToken = ""
+if (monitorTokenFile) {
+    def secretFile = new File(monitorTokenFile)
+    monitorAccessToken = secretFile.getText("UTF-8").trim()
+}
+
+android {
+    namespace "com.tales.notservermonitor"
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "com.tales.notservermonitor"
+        minSdk 26
+        targetSdk 34
+        versionCode 4
+        versionName "1.2.1"
+        buildConfigField "String", "MONITOR_BASE_URL", javaString(monitorBaseUrl)
+        buildConfigField "String", "MONITOR_ACCESS_TOKEN", javaString(monitorAccessToken)
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    buildFeatures {
+        buildConfig true
+    }
+}

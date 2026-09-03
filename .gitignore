@@ -1,0 +1,36 @@
+.DS_Store
+.idea/
+.vscode/
+node_modules/
+npm-debug.log*
+*.log
+coverage/
+
+# Segredos e credenciais locais
+.env
+.env.*
+!.env.example
+*.key
+*.keystore
+*.jks
+*.p12
+*.pem
+*.token
+access-token
+
+# Android / Gradle
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+*.apk
+*.apks
+*.aab
+*.idsig
+
+# Artefatos distribuídos localmente; a APK contém a credencial do app
+dist/
+updates/
+
+# Grafo e memória locais de análise do código
+graphify-out/

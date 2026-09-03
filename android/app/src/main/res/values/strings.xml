@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Notserver Monitor</string>
+    <string name="checking">VERIFICANDO</string>
+    <string name="connecting_title">Conectando ao servidor</string>
+    <string name="connecting_detail">Consultando a API segura do notserver pela internet…</string>
+    <string name="connection_issue_badge">RECONFIRMANDO</string>
+    <string name="connection_issue_title">Conexão temporariamente instável</string>
+    <string name="connection_issue_detail">Uma verificação falhou. O app aguardará uma segunda falha consecutiva antes de indicar uma queda.</string>
+    <string name="authentication_badge">ACESSO RECUSADO</string>
+    <string name="authentication_title">Aplicativo não autorizado</string>
+    <string name="authentication_detail">A API está acessível, mas recusou a credencial deste aplicativo.</string>
+    <string name="offline_badge">QUEDA CONFIRMADA</string>
+    <string name="offline_title">Servidor ou monitor indisponível</string>
+    <string name="offline_detail">Duas verificações consecutivas falharam. Verifique o servidor e o túnel seguro.</string>
+    <string name="last_check">Última tentativa: %1$s</string>
+    <string name="retry">Tentar novamente</string>
+</resources>

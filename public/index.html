@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#050505" />
+    <meta name="description" content="Monitoramento operacional do notserver." />
+    <title>Monitoramento do servidor</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <script type="module" src="/app.js"></script>
+  </head>
+  <body>
+    <header class="page-header">
+      <div class="page-title">
+        <span class="server-indicator loading" id="status-orb"></span>
+        <div>
+          <h1>Monitoramento do servidor</h1>
+          <span id="server-description">Conectando ao notserver…</span>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="button quiet mobile-hide" id="print-button" type="button">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 8V4h10v4M7 17H5a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M7 14h10v6H7v-6Z" /></svg>
+          Imprimir
+        </button>
+        <button class="button quiet mobile-hide" id="copy-button" type="button">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.1.1l2-2a5 5 0 0 0-7.1-7.1l-1.1 1.1M14 11a5 5 0 0 0-7.1-.1l-2 2A5 5 0 0 0 12 20l1.1-1.1" /></svg>
+          Copiar link
+        </button>
+        <button class="button primary" id="refresh-button" type="button">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.3-5.7L20 8.6M20 4v4.6h-4.6" /></svg>
+          Atualizar
+        </button>
+      </div>
+    </header>
+
+    <nav class="screen-nav" aria-label="Telas do monitoramento">
+      <button class="screen-tab active" type="button" data-screen="overview">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h6v7H4V4Zm10 0h6v4h-6V4ZM4 15h6v5H4v-5Zm10-3h6v8h-6v-8Z" /></svg>
+        Visão geral
+      </button>
+      <button class="screen-tab" type="button" data-screen="services">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14v6H5V4Zm0 10h14v6H5v-6ZM8 7h.01M8 17h.01M11 7h5M11 17h5" /></svg>
+        Serviços
+        <span class="nav-count" id="nav-services-count">—</span>
+      </button>
+      <button class="screen-tab" type="button" data-screen="containers">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h4v4H5V5Zm5 0h4v4h-4V5Zm5 0h4v4h-4V5ZM5 10h4v4H5v-4Zm5 0h4v4h-4v-4Zm5 0h4v4h-4v-4ZM3 15h18c-.5 3.8-3.4 6-7.8 6H9.5C5.4 21 3.3 19 3 15Z" /></svg>
+        Contêineres
+        <span class="nav-count" id="nav-containers-count">—</span>
+      </button>
+      <button class="screen-tab" type="button" data-screen="incidents">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 2 20h20L12 3Zm0 6v5m0 3v.01" /></svg>
+        Incidentes
+        <span class="nav-count" id="nav-incidents-count">—</span>
+      </button>
+    </nav>
+
+    <div class="control-bar">
+      <button class="button quiet" id="issue-filter" type="button" aria-pressed="false">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16l-6 7v5l-4 2v-7L4 5Z" /></svg>
+        <span>Adicionar filtro</span>
+      </button>
+      <div class="control-right">
+        <button class="button quiet live-button" id="live-toggle" type="button" aria-pressed="true">
+          <span class="live-mark"></span>
+          Atualização ao vivo
+          <small id="refresh-countdown">15s</small>
+        </button>
+        <div class="button quiet static-button">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3v3M17 3v3M4 9h16M5 5h14a1 1 0 0 1 1 1v14H4V6a1 1 0 0 1 1-1Z" /></svg>
+          Última hora
+        </div>
+      </div>
+    </div>
+
+    <main class="dashboard">
+      <section class="status-strip" aria-label="Status do servidor">
+        <div class="host-meta">
+          <strong id="hero-host">notserver</strong>
+          <span>última leitura <b id="last-update">—</b></span>
+          <span>tempo ativo <b id="uptime">—</b></span>
+        </div>
+        <div class="overall-chip loading" id="overall-chip"><i></i><span>Conectando</span></div>
+      </section>
+
+      <section class="alert-banner hidden" id="alert-banner" aria-live="polite">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 2 20h20L12 3Zm0 6v5m0 3v.01" /></svg>
+        <div><strong id="alert-title">Atenção necessária</strong><span id="alert-detail"></span></div>
+        <a href="#incidents" data-screen-link="incidents">Ver incidentes</a>
+      </section>
+
+      <section class="screen active" data-screen-panel="overview">
+        <div class="screen-heading">
+          <div><span>INFRAESTRUTURA</span><h2>Visão geral</h2><p>Recursos e disponibilidade do servidor em tempo real.</p></div>
+          <span class="screen-context">Resumo operacional</span>
+        </div>
+
+        <section class="metric-grid" aria-label="Métricas principais">
+        <article class="panel metric-card">
+          <div class="panel-label"><span>Uso do processador</span><button class="kebab" aria-label="Mais opções">•••</button></div>
+          <div class="metric-line"><strong><span id="cpu-value">—</span><small>%</small></strong><span id="cpu-state">—</span></div>
+          <div class="mini-chart"><svg id="cpu-spark" viewBox="0 0 360 46" preserveAspectRatio="none"></svg></div>
+          <div class="metric-note">Carga <b id="load-value">—</b></div>
+        </article>
+
+        <article class="panel metric-card">
+          <div class="panel-label"><span>Uso de memória</span><button class="kebab" aria-label="Mais opções">•••</button></div>
+          <div class="metric-line"><strong><span id="memory-value">—</span><small>%</small></strong><span id="memory-state">—</span></div>
+          <div class="mini-chart"><svg id="memory-spark" viewBox="0 0 360 46" preserveAspectRatio="none"></svg></div>
+          <div class="metric-note"><b id="memory-used">—</b> de <b id="memory-total">—</b></div>
+        </article>
+
+        <article class="panel metric-card">
+          <div class="panel-label"><span>Armazenamento principal</span><button class="kebab" aria-label="Mais opções">•••</button></div>
+          <div class="metric-line"><strong><span id="disk-value">—</span><small>%</small></strong><span id="disk-state">—</span></div>
+          <div class="mini-chart"><svg id="disk-spark" viewBox="0 0 360 46" preserveAspectRatio="none"></svg></div>
+          <div class="metric-note"><b id="disk-used">—</b> usados em <b id="disk-mount">/</b></div>
+        </article>
+
+        <article class="panel metric-card">
+          <div class="panel-label"><span>Disponibilidade dos serviços</span><button class="kebab" aria-label="Mais opções">•••</button></div>
+          <div class="metric-line"><strong><span id="availability-value">—</span><small>%</small></strong><span id="services-state">—</span></div>
+          <div class="mini-chart"><svg id="availability-spark" viewBox="0 0 360 46" preserveAspectRatio="none"></svg></div>
+          <div class="metric-note"><b id="services-running">—</b> ativos · <b id="services-failed">—</b> falhas</div>
+        </article>
+        </section>
+
+        <section class="overview-insights" aria-label="Resumo operacional">
+          <article class="panel consumer-panel">
+            <div class="panel-heading">
+              <div><span>Maiores consumidores</span><small id="overview-consumer-summary">Calculando uso por serviço e contêiner…</small></div>
+              <span class="panel-context">CPU e memória</span>
+            </div>
+            <div class="overview-consumer-list" id="overview-consumer-list">
+              <div class="skeleton"></div>
+            </div>
+          </article>
+
+          <article class="panel attention-panel">
+            <div class="panel-heading">
+              <div><span>Atenção agora</span><small>Falhas e eventos que podem exigir ação</small></div>
+              <a class="panel-link" href="#incidents" data-screen-link="incidents">Ver incidentes</a>
+            </div>
+            <div class="attention-stats">
+              <button type="button" data-screen-link="services"><span>Serviços com falha</span><strong id="overview-failed-services">—</strong></button>
+              <button type="button" data-screen-link="containers"><span>Docker com falha</span><strong id="overview-failed-containers">—</strong></button>
+              <button type="button" data-screen-link="incidents"><span>Erros no journal</span><strong id="overview-journal-errors">—</strong></button>
+            </div>
+            <div class="overview-attention-list" id="overview-attention-list">
+              <div class="skeleton"></div>
+            </div>
+          </article>
+
+          <article class="panel app-health-panel overview-wide">
+            <div class="panel-heading">
+              <div><span>Saúde das aplicações</span><small id="overview-app-summary">Consultando os componentes monitorados…</small></div>
+              <a class="panel-link" href="#services" data-screen-link="services">Ver serviços</a>
+            </div>
+            <div class="overview-app-list" id="overview-app-list">
+              <div class="skeleton"></div>
+            </div>
+          </article>
+        </section>
+
+        <section class="panel chart-panel">
+        <div class="panel-heading">
+          <div><span>Histórico de recursos</span><small>CPU, memória e disco durante esta sessão</small></div>
+          <button class="kebab" aria-label="Mais opções">•••</button>
+        </div>
+        <div class="chart-legend">
+          <span><i class="blue"></i>CPU <b id="legend-cpu">—</b></span>
+          <span><i class="yellow"></i>Memória <b id="legend-memory">—</b></span>
+          <span><i class="pink"></i>Disco <b id="legend-disk">—</b></span>
+        </div>
+        <div class="resource-chart">
+          <div class="axis-labels"><span>100%</span><span>75%</span><span>50%</span><span>25%</span><span>0%</span></div>
+          <svg id="resource-chart" viewBox="0 0 1200 270" preserveAspectRatio="none" aria-label="Histórico de CPU, memória e disco">
+            <g class="chart-grid"><line x1="0" y1="10" x2="1200" y2="10"/><line x1="0" y1="72.5" x2="1200" y2="72.5"/><line x1="0" y1="135" x2="1200" y2="135"/><line x1="0" y1="197.5" x2="1200" y2="197.5"/><line x1="0" y1="260" x2="1200" y2="260"/></g>
+            <path class="chart-path disk" id="resource-disk" />
+            <path class="chart-path memory" id="resource-memory" />
+            <path class="chart-path cpu" id="resource-cpu" />
+          </svg>
+          <div class="time-axis"><span id="time-start">Agora</span><span id="time-middle">—</span><span id="time-end">Agora</span></div>
+        </div>
+        </section>
+      </section>
+
+      <section class="screen" data-screen-panel="services">
+        <div class="screen-heading">
+          <div><span id="service-screen-eyebrow">CATÁLOGO</span><h2 id="service-screen-title">Serviços</h2><p id="service-screen-description">Aplicações e infraestrutura organizadas por produto.</p></div>
+          <span class="screen-context"><b id="services-screen-total">—</b> <span id="services-screen-total-label">grupos monitorados</span></span>
+        </div>
+
+        <div class="service-catalog" id="service-catalog-view">
+          <section class="service-group-grid" id="service-group-list" aria-label="Grupos de serviços">
+            <article class="panel group-card skeleton"></article>
+            <article class="panel group-card skeleton"></article>
+            <article class="panel group-card skeleton"></article>
+          </section>
+        </div>
+
+        <div class="service-detail" id="service-detail-view" hidden>
+          <div class="subpage-bar">
+            <button class="back-button" id="service-back" type="button">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg>
+              Todos os serviços
+            </button>
+            <div class="subpage-breadcrumb"><span>Serviços</span><i>/</i><strong id="service-group-title">Aplicação</strong></div>
+          </div>
+          <article class="panel service-panel page-panel">
+            <div class="panel-heading interactive-heading">
+              <div><span id="component-panel-title">Componentes</span><small id="component-panel-description">Subserviços desta aplicação</small></div>
+              <div class="panel-tools">
+                <label class="search-control">
+                  <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m16 16 4 4"/></svg>
+                  <input id="service-search" type="search" placeholder="Buscar componente" aria-label="Buscar componente" />
+                </label>
+                <select id="service-filter" aria-label="Filtrar componentes">
+                  <option value="all">Todos</option>
+                  <option value="active">Ativos</option>
+                  <option value="failed">Com falha</option>
+                  <option value="systemd">Systemd</option>
+                  <option value="docker">Docker</option>
+                </select>
+              </div>
+            </div>
+            <div class="service-list" id="service-list"><div class="skeleton"></div></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="screen" data-screen-panel="containers">
+        <div class="screen-heading">
+          <div><span id="container-screen-eyebrow">DOCKER</span><h2 id="container-screen-title">Contêineres</h2><p id="container-screen-description">Aplicações Docker organizadas por projeto.</p></div>
+          <span class="screen-context"><b id="containers-screen-total">—</b> <span id="containers-screen-total-label">projetos monitorados</span></span>
+        </div>
+
+        <div class="service-catalog" id="container-catalog-view">
+          <section class="service-group-grid" id="container-group-list" aria-label="Projetos Docker">
+            <article class="panel group-card skeleton"></article>
+            <article class="panel group-card skeleton"></article>
+            <article class="panel group-card skeleton"></article>
+          </section>
+        </div>
+
+        <div class="service-detail" id="container-detail-view" hidden>
+          <div class="subpage-bar">
+            <button class="back-button" id="container-back" type="button">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg>
+              Todos os projetos Docker
+            </button>
+            <div class="subpage-breadcrumb"><span>Docker</span><i>/</i><strong id="container-group-title">Aplicação</strong></div>
+          </div>
+          <section class="panel containers-panel">
+            <div class="panel-heading">
+              <div><span id="container-panel-title">Contêineres Docker</span><small><b id="containers-running">—</b> <span id="container-panel-description">ativos neste projeto</span></small></div>
+              <div class="inline-legend"><span><i class="blue"></i>Ativo</span><span><i class="red"></i>Problema</span></div>
+            </div>
+            <div class="table-scroll">
+              <table>
+                <thead><tr><th>Contêiner</th><th>Estado</th><th>Imagem</th><th>CPU</th><th>Memória</th><th>Portas</th></tr></thead>
+                <tbody id="container-list"><tr><td colspan="6"><div class="skeleton row-skeleton"></div></td></tr></tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section class="screen" data-screen-panel="incidents">
+        <div class="screen-heading">
+          <div><span>OBSERVABILIDADE</span><h2>Incidentes</h2><p>Falhas de serviços, contêineres e erros do journal.</p></div>
+          <span class="screen-context">Janela de 1 hora</span>
+        </div>
+        <section class="incidents-grid">
+          <article class="panel distribution-panel">
+          <div class="panel-heading">
+            <div><span>Distribuição de alertas</span><small>Última hora</small></div>
+            <button class="kebab" aria-label="Mais opções">•••</button>
+          </div>
+          <div class="distribution-body">
+            <div class="donut" id="error-donut"><div><strong id="incident-count">—</strong><span>incidentes</span></div></div>
+            <div class="distribution-legend">
+              <div><span><i class="red"></i>Journal</span><b id="journal-error-count">—</b></div>
+              <div><span><i class="yellow"></i>Serviços</span><b id="failed-service-count">—</b></div>
+              <div><span><i class="pink"></i>Contêineres</span><b id="failed-container-count">—</b></div>
+            </div>
+          </div>
+          </article>
+          <article class="panel incidents-panel">
+            <div class="panel-heading">
+              <div><span>Eventos e erros recentes</span><small>Journal do sistema e falhas detectadas</small></div>
+              <button class="kebab" aria-label="Mais opções">•••</button>
+            </div>
+            <div class="incident-list" id="incident-list"><div class="empty-loading"><span class="spinner"></span>Consultando o journal…</div></div>
+          </article>
+        </section>
+      </section>
+
+      <footer class="dashboard-footer">
+        <span><i class="footer-dot"></i>Coleta somente leitura via SSH</span>
+        <span id="footer-system">Aguardando dados do sistema</span>
+      </footer>
+    </main>
+
+    <dialog class="log-dialog" id="log-dialog">
+      <div class="dialog-head">
+        <div><small>JOURNALCTL · ÚLTIMAS 24 HORAS</small><h2 id="log-title">Logs do serviço</h2></div>
+        <button class="dialog-close" id="close-dialog" type="button" aria-label="Fechar">×</button>
+      </div>
+      <pre class="terminal" id="log-content"><span class="spinner"></span></pre>
+    </dialog>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </body>
+</html>

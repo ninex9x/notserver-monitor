@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Relatar vulnerabilidade
+    url: https://github.com/ninex9x/notserver-monitor/security/advisories/new
+    about: Envie relatos de segurança de forma privada.
